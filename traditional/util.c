@@ -28,7 +28,8 @@ image compute_depth(image disparity, double f, double d) {
             double x_dis = x - cen_x;
             double y_dis = y - cen_y;
             // TODO: possible conversion of unit of pixel shift (pixel -> millimeter)
-            double pix_dis = sqrt(x_dis * x_dis + y_dis * y_dis);
+            double xy_dis = sqrt(x_dis * x_dis + y_dis * y_dis);
+            double pix_dis = sqrt(xy_dis * xy_dis + f * f);
             // second, we need to scale the pixel distance by a proportion,
             // so that we can get the real distance.
             double real_dis = pix_dis * vertical_depth / f;
