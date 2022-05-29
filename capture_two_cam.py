@@ -49,7 +49,7 @@ while(True):
 
     cv2.imshow('left', leftFrame)
     cv2.imshow('right', rightFrame)
-    if cv2.waitKey(20) & 0xFF == ord('q'):  # 50 fps
+    if cv2.waitKey(40) & 0xFF == ord('q'):  # 25 fps
         break
 
     frameId += 1

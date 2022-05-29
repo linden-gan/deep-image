@@ -16,29 +16,24 @@ rightROI = tuple(calibration["rightROI"])
 CAMERA_WIDTH = 1280
 CAMERA_HEIGHT = 720
 
-left = cv2.VideoCapture(0)
-right = cv2.VideoCapture(1)
+cam = cv2.VideoCapture(1, cv2.CAP_DSHOW)
 
 # Increase the resolution
-left.set(cv2.CAP_PROP_FRAME_WIDTH, CAMERA_WIDTH)
-left.set(cv2.CAP_PROP_FRAME_HEIGHT, CAMERA_HEIGHT)
-right.set(cv2.CAP_PROP_FRAME_WIDTH, CAMERA_WIDTH)
-right.set(cv2.CAP_PROP_FRAME_HEIGHT, CAMERA_HEIGHT)
+cam.set(cv2.CAP_PROP_FRAME_WIDTH, CAMERA_WIDTH)
+cam.set(cv2.CAP_PROP_FRAME_HEIGHT, CAMERA_HEIGHT)
 
 # Use MJPEG to avoid overloading the USB 2.0 bus at this resolution
-left.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
-right.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
+cam.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
 
 # The distortion in the left and right edges prevents a good calibration, so
 # discard the edges
-CROP_WIDTH = 960
+CROP_WIDTH = 1200
 def cropHorizontal(image):
     return image[:,
             int((CAMERA_WIDTH-CROP_WIDTH)/2):
             int(CROP_WIDTH+(CAMERA_WIDTH-CROP_WIDTH)/2)]
 
-# TODO: Why these values in particular?
-# TODO: Try applying brightness/contrast/gamma adjustments to the images
+# Try applying brightness/contrast/gamma adjustments to the images
 stereoMatcher = cv2.StereoBM_create()
 stereoMatcher.setMinDisparity(4)
 stereoMatcher.setNumDisparities(128)
@@ -48,40 +43,49 @@ stereoMatcher.setROI2(rightROI)
 stereoMatcher.setSpeckleRange(16)
 stereoMatcher.setSpeckleWindowSize(45)
 
+frameId = 0
+leftFrame = np.zeros(imageSize)
+rightFrame = np.zeros(imageSize)
+original_left = np.zeros(imageSize)
+original_right = np.zeros(imageSize)
+
+outputFile = sys.path[0] + "\cam\\res_disparity"
+
 # Grab both frames first, then retrieve to minimize latency between cameras
 while(True):
-    if not left.grab() or not right.grab():
+    if not cam.grab():
         print("No more frames")
         break
 
-    _, leftFrame = left.retrieve()
-    leftFrame = cropHorizontal(leftFrame)
-    leftHeight, leftWidth = leftFrame.shape[:2]
-    _, rightFrame = right.retrieve()
-    rightFrame = cropHorizontal(rightFrame)
-    rightHeight, rightWidth = rightFrame.shape[:2]
+    _, frame = cam.retrieve()
+    
+    if frameId == 200:
+        frame = cropHorizontal(frame)
+        original_right = frame
+        rightFrame = cv2.remap(frame, rightMapX, rightMapY, REMAP_INTERPOLATION)
+        print("Second image took")
+        grayLeft = cv2.cvtColor(leftFrame, cv2.COLOR_BGR2GRAY)
+        grayRight = cv2.cvtColor(rightFrame, cv2.COLOR_BGR2GRAY)
+        disparity = stereoMatcher.compute(grayLeft, grayRight)
+        np.savez_compressed(outputFile, disparity=disparity)
 
-    if (leftWidth, leftHeight) != imageSize:
-        print("Left camera has different size than the calibration data")
-        break
+        cv2.imshow('original left', original_left)
+        cv2.imshow('original right', original_right)
+        cv2.imshow('left', leftFrame)
+        cv2.imshow('right', rightFrame)
+        cv2.imshow('disparity', disparity)
+        if cv2.waitKey() & 0xFF == ord('q'):
+            break
+    elif frameId == 100:
+        frame = cropHorizontal(frame)
+        original_left = frame
+        leftFrame = cv2.remap(frame, leftMapX, leftMapY, REMAP_INTERPOLATION)
+        print("First image took")
 
-    if (rightWidth, rightHeight) != imageSize:
-        print("Right camera has different size than the calibration data")
-        break
-
-    fixedLeft = cv2.remap(leftFrame, leftMapX, leftMapY, REMAP_INTERPOLATION)
-    fixedRight = cv2.remap(rightFrame, rightMapX, rightMapY, REMAP_INTERPOLATION)
-
-    grayLeft = cv2.cvtColor(fixedLeft, cv2.COLOR_BGR2GRAY)
-    grayRight = cv2.cvtColor(fixedRight, cv2.COLOR_BGR2GRAY)
-    disparity = stereoMatcher.compute(grayLeft, grayRight)
-
-    cv2.imshow('left', fixedLeft)
-    cv2.imshow('right', fixedRight)
-    cv2.imshow('disparity', disparity)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-left.release()
-right.release()
+    frameId += 1
+
+cam.release()
 cv2.destroyAllWindows()

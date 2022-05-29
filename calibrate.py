@@ -85,8 +85,6 @@ if leftSize != rightSize:
     sys.exit(1)
 imageSize = leftSize
 
-print(leftFilenames)
-print(rightFilenames)
 filenames = list(set(leftFilenames) & set(rightFilenames))
 if (len(filenames) > MAX_IMAGES):
     print("Too many images to calibrate, using {0} randomly selected images"
@@ -155,23 +153,23 @@ np.savez_compressed(outputFile, imageSize=imageSize,
         leftMapX=leftMapX, leftMapY=leftMapY, leftROI=leftROI,
         rightMapX=rightMapX, rightMapY=rightMapY, rightROI=rightROI)
 
-REMAP_INTERPOLATION = cv2.INTER_LINEAR
+# REMAP_INTERPOLATION = cv2.INTER_LINEAR
 
-calibration = np.load(sys.path[0] + "\cam\calib.npz", allow_pickle=False)
-imageSize = tuple(calibration["imageSize"])
-leftMapX = calibration["leftMapX"]
-leftMapY = calibration["leftMapY"]
-leftROI = tuple(calibration["leftROI"])
-rightMapX = calibration["rightMapX"]
-rightMapY = calibration["rightMapY"]
-rightROI = tuple(calibration["rightROI"])
+# calibration = np.load(sys.path[0] + "\cam\calib.npz", allow_pickle=False)
+# imageSize = tuple(calibration["imageSize"])
+# leftMapX = calibration["leftMapX"]
+# leftMapY = calibration["leftMapY"]
+# leftROI = tuple(calibration["leftROI"])
+# rightMapX = calibration["rightMapX"]
+# rightMapY = calibration["rightMapY"]
+# rightROI = tuple(calibration["rightROI"])
 
-LEFT_PATH = sys.path[0] + "\cam\cleft\{:06d}.jpg"
-im = cv2.imread(LEFT_PATH.format(300))
-cv2.imshow('noncalib', im)
-fixedLeft = cv2.remap(im, leftMapX, leftMapY, REMAP_INTERPOLATION)
-cv2.imshow('calib', fixedLeft)
+# LEFT_PATH = sys.path[0] + "\cam\cleft\{:06d}.jpg"
+# im = cv2.imread(LEFT_PATH.format(300))
+# cv2.imshow('noncalib', im)
+# fixedLeft = cv2.remap(im, leftMapX, leftMapY, REMAP_INTERPOLATION)
+# cv2.imshow('calib', fixedLeft)
 
-cv2.waitKey()
+# cv2.waitKey()
 
 cv2.destroyAllWindows()
