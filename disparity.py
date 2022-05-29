@@ -49,7 +49,7 @@ rightFrame = np.zeros(imageSize)
 original_left = np.zeros(imageSize)
 original_right = np.zeros(imageSize)
 
-outputFile = sys.path[0] + "\cam\\res_disparity"
+outputFile = sys.path[0] + "\cam\\res_disparity.jpg"
 
 # Grab both frames first, then retrieve to minimize latency between cameras
 while(True):
@@ -67,7 +67,9 @@ while(True):
         grayLeft = cv2.cvtColor(leftFrame, cv2.COLOR_BGR2GRAY)
         grayRight = cv2.cvtColor(rightFrame, cv2.COLOR_BGR2GRAY)
         disparity = stereoMatcher.compute(grayLeft, grayRight)
-        np.savez_compressed(outputFile, disparity=disparity)
+        if not cv2.imwrite(outputFile, disparity):
+            raise Exception("Could not write image")
+        #np.savez_compressed(outputFile, disparity=disparity)
 
         cv2.imshow('original left', original_left)
         cv2.imshow('original right', original_right)
