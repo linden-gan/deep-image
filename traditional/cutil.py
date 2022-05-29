@@ -24,11 +24,12 @@ class POINT(Structure):
 
 # functions
 compute_depth_lib = lib.compute_depth
-compute_depth_lib.argtypes = [IMAGE, c_float]
+compute_depth_lib.argtypes = [IMAGE, c_float, c_float]
 compute_depth_lib.restype = IMAGE
 
-def compute_depth(disparity, f):
-    return compute_depth(disparity, f)
+def compute_depth(disparity, f, d):
+    print(f'sssssssss {disparity.data}')
+    return compute_depth_lib(disparity, f, d)
 
 load_image_lib = lib.load_image
 load_image_lib.argtypes = [c_char_p, c_int]
