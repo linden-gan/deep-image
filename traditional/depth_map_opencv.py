@@ -18,6 +18,9 @@ stereo.setSpeckleWindowSize(45)
 
 disparity = stereo.compute(imgL,imgR)
 
+real_disp = disparity / 16
+np.savez('traditional_out/disparity', disparity=real_disp)
+
 end = time.perf_counter()
 
 cv.imwrite('traditional_out/output.png', disparity)
