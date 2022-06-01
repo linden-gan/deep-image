@@ -14,4 +14,11 @@ typedef struct{
     float x, y;
 } point;
 
+// input: a disparity map, focal length, and two cameras' displacement
+// output: a depth map with 2 channels, one for vertical depth z,
+// the other for euclidean distance.
+image compute_depth(image disparity, float f, float d);
+
+image make_image(int w, int h, int c);
+
 #endif IMAGE_H
