@@ -8,7 +8,7 @@ RIGHT_PATH = sys.path[0] + "\cam\cright\{:06d}.jpg"
 CAMERA_WIDTH = 1280
 CAMERA_HEIGHT = 720
 
-cam = cv2.VideoCapture(1, cv2.CAP_DSHOW)
+cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
 # Increase the resolution
 cam.set(cv2.CAP_PROP_FRAME_WIDTH, CAMERA_WIDTH)
@@ -37,10 +37,14 @@ while(True):
     #         raise Exception("Could not write image")
     #     print("Second image took")
     
-    if frameId != 0 and frameId % 100 == 0:
-        if not cv2.imwrite(LEFT_PATH.format(frameId), frame):
+    if frameId != 0 and frameId % 400 == 200:
+        if not cv2.imwrite(LEFT_PATH.format((frameId + 200) // 400), frame):
             raise Exception("Could not write image")
-        print("image took" + str(frameId))
+        print("left image took " + str((frameId + 200) // 400))
+    elif frameId != 0 and frameId % 400 == 0:
+        if not cv2.imwrite(RIGHT_PATH.format((frameId + 200) // 400), frame):
+            raise Exception("Could not write image")
+        print("right image took " + str((frameId + 200) // 400))
 
     cv2.imshow('cam', frame)
     if cv2.waitKey(40) & 0xFF == ord('q'):  # 25 fps

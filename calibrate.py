@@ -6,7 +6,7 @@ import sys
 import numpy as np
 import cv2
 
-CHESSBOARD_SIZE = (9, 7)
+CHESSBOARD_SIZE = (7, 5)
 
 OBJECT_POINT_ZERO = np.zeros((CHESSBOARD_SIZE[0] * CHESSBOARD_SIZE[1], 3),
         np.float32)
@@ -153,23 +153,23 @@ np.savez_compressed(outputFile, imageSize=imageSize,
         leftMapX=leftMapX, leftMapY=leftMapY, leftROI=leftROI,
         rightMapX=rightMapX, rightMapY=rightMapY, rightROI=rightROI)
 
-# REMAP_INTERPOLATION = cv2.INTER_LINEAR
+REMAP_INTERPOLATION = cv2.INTER_LINEAR
 
-# calibration = np.load(sys.path[0] + "\cam\calib.npz", allow_pickle=False)
-# imageSize = tuple(calibration["imageSize"])
-# leftMapX = calibration["leftMapX"]
-# leftMapY = calibration["leftMapY"]
-# leftROI = tuple(calibration["leftROI"])
-# rightMapX = calibration["rightMapX"]
-# rightMapY = calibration["rightMapY"]
-# rightROI = tuple(calibration["rightROI"])
+calibration = np.load(sys.path[0] + "\cam\calib.npz", allow_pickle=False)
+imageSize = tuple(calibration["imageSize"])
+leftMapX = calibration["leftMapX"]
+leftMapY = calibration["leftMapY"]
+leftROI = tuple(calibration["leftROI"])
+rightMapX = calibration["rightMapX"]
+rightMapY = calibration["rightMapY"]
+rightROI = tuple(calibration["rightROI"])
 
-# LEFT_PATH = sys.path[0] + "\cam\cleft\{:06d}.jpg"
-# im = cv2.imread(LEFT_PATH.format(300))
-# cv2.imshow('noncalib', im)
-# fixedLeft = cv2.remap(im, leftMapX, leftMapY, REMAP_INTERPOLATION)
-# cv2.imshow('calib', fixedLeft)
+LEFT_PATH = sys.path[0] + "\cam\cleft\{:06d}.jpg"
+im = cv2.imread(LEFT_PATH.format(6))
+cv2.imshow('noncalib', im)
+fixedLeft = cv2.remap(im, leftMapX, leftMapY, REMAP_INTERPOLATION)
+cv2.imshow('calib', fixedLeft)
 
-# cv2.waitKey()
+cv2.waitKey()
 
 cv2.destroyAllWindows()
