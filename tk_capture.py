@@ -4,13 +4,12 @@ import cv2
 from PIL import Image, ImageTk
 import numpy as np
 import sys
-from threading import Thread
 
 LEFT_PATH = sys.path[0] + "\capture\cleft\{:06d}.jpg"
 RIGHT_PATH = sys.path[0] + "\capture\cright\{:06d}.jpg"
 
 left = cv2.VideoCapture(0)
-right = cv2.VideoCapture(0)
+right = cv2.VideoCapture(1)
 
 CAMERA_WIDTH, CAMERA_HEIGHT = 640, 480
 left.set(cv2.CAP_PROP_FRAME_WIDTH, CAMERA_WIDTH)
@@ -73,9 +72,11 @@ result_text.pack(padx=5, pady=10, side=tk.LEFT)
 frame_input.pack(side=tk.LEFT)
 
 frameId = 0
+leftFrame = np.zeros(2)
+rightFrame = np.zeros(2)
 
-def show_two_frames():
-    global frameId
+def get_two_frames():
+    global frameId, leftFrame, rightFrame
     if not (left.grab() and right.grab()):
         print("No more frames")
         exit()
@@ -87,29 +88,27 @@ def show_two_frames():
     #     raise Exception("Could not write image")
     # if not cv2.imwrite(RIGHT_PATH.format(frameId), rightFrame):
     #     raise Exception("Could not write image")
-    
-    show_frame_left(leftFrame)
-    show_frame_right(rightFrame)
 
     frameId += 1
-    show_two_frames()
 
-def show_frame_left(frame):
-    cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
+def show_frame_left():
+    get_two_frames()
+    cv2image = cv2.cvtColor(leftFrame, cv2.COLOR_BGR2RGBA)
     img = Image.fromarray(cv2image)
     imgtk = ImageTk.PhotoImage(image=img)
     caml.imgtk = imgtk
     caml.configure(image=imgtk)
-    caml.after(50)
+    caml.after(30, show_frame_left)
 
-def show_frame_right(frame):
-    cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
+def show_frame_right():
+    cv2image = cv2.cvtColor(rightFrame, cv2.COLOR_BGR2RGBA)
     img = Image.fromarray(cv2image)
     imgtk = ImageTk.PhotoImage(image=img)
     camr.imgtk = imgtk
     camr.configure(image=imgtk)
-    camr.after(50)
+    camr.after(30, show_frame_right)
 
-show_two_frames()
+show_frame_left()
+show_frame_right()
 
 window.mainloop()
