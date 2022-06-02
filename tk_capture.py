@@ -9,8 +9,8 @@ from threading import Thread
 LEFT_PATH = sys.path[0] + "\capture\cleft\{:06d}.jpg"
 RIGHT_PATH = sys.path[0] + "\capture\cright\{:06d}.jpg"
 
-left = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-right = cv2.VideoCapture(1)
+left = cv2.VideoCapture(0)
+right = cv2.VideoCapture(0)
 
 CAMERA_WIDTH, CAMERA_HEIGHT = 640, 480
 left.set(cv2.CAP_PROP_FRAME_WIDTH, CAMERA_WIDTH)
@@ -88,16 +88,8 @@ def show_two_frames():
     # if not cv2.imwrite(RIGHT_PATH.format(frameId), rightFrame):
     #     raise Exception("Could not write image")
     
-    t1 = Thread(target=show_frame_left, args=(leftFrame,))
-    t2 = Thread(target=show_frame_right, args=(rightFrame,))
-
-    t1.start()
-    t1.setDaemon(True)
-    t2.start()
-    t2.setDaemon(True)
-
-    t1.join()
-    t2.join()
+    show_frame_left(leftFrame)
+    show_frame_right(rightFrame)
 
     frameId += 1
     show_two_frames()
