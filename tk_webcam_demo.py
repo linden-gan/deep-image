@@ -3,7 +3,7 @@ import cv2
 from PIL import Image, ImageTk
 import numpy as np
 
-width, height = 640, 360
+width, height = 640, 380
 cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
@@ -24,8 +24,8 @@ window = tk.Tk()
 window.title("Webcam demo")
 window.bind('<Escape>', lambda e: window.quit())
 
-frame1 = tk.Frame(master=window, width=1300, height=400)
-lcam1 = tk.Label(master=frame1, width=640, height=360)
+frame1 = tk.Frame(master=window, width=1300, height=600)
+lcam1 = tk.Label(master=frame1, width=640, height=380)
 lcam1.pack(padx=5, pady=10, side=tk.LEFT)
 lcam1.bind("<Button-1>", handle_click1)
 
