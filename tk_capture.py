@@ -7,6 +7,8 @@ import sys
 from tk_disparity import compute_disparity
 from traditional.cutil import compute_depth
 
+LAST_CLICK_POS = None
+
 left = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 right = cv2.VideoCapture(2, cv2.CAP_DSHOW)
 
