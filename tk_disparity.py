@@ -34,10 +34,7 @@ stereoMatcher.setSpeckleRange(16)
 stereoMatcher.setSpeckleWindowSize(45)
 right_matcher = cv2.ximgproc.createRightMatcher(stereoMatcher);
 
-def compute_disparity(frameId):
-    leftFrame = cv2.imread(LEFT_PATH.format(frameId - 1))
-    rightFrame = cv2.imread(RIGHT_PATH.format(frameId - 1))
-
+def compute_disparity(leftFrame, rightFrame):
     leftFrame = cropHorizontal(leftFrame)
     leftHeight, leftWidth = leftFrame.shape[:2]
     rightFrame = cropHorizontal(rightFrame)
@@ -70,10 +67,12 @@ def compute_disparity(frameId):
 
     np.savez_compressed(outputFile, disparity = filtered_disp)
 
+    return filtered_disp
+
     # cv2.imshow('original left', original_left)
     # cv2.imshow('original right', original_right)
-    cv2.imshow('left', leftFrame)
-    cv2.imshow('right', rightFrame)
-    cv2.imshow('disparity', filtered_disp / 1024)
-    if cv2.waitKey() & 0xFF == ord('q'):
-        return
+    # cv2.imshow('left', leftFrame)
+    # cv2.imshow('right', rightFrame)
+    # cv2.imshow('disparity', filtered_disp / 1024)
+    # if cv2.waitKey() & 0xFF == ord('q'):
+    #     return

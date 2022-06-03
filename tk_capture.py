@@ -5,9 +5,7 @@ from PIL import Image, ImageTk
 import numpy as np
 import sys
 from tk_disparity import compute_disparity
-
-LEFT_PATH = sys.path[0] + "\capture\cleft\{:06d}.jpg"
-RIGHT_PATH = sys.path[0] + "\capture\cright\{:06d}.jpg"
+from traditional.cutil import compute_depth
 
 left = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 right = cv2.VideoCapture(2, cv2.CAP_DSHOW)
@@ -22,15 +20,19 @@ right.set(cv2.CAP_PROP_FRAME_HEIGHT, CAMERA_HEIGHT)
 left.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
 right.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
 
+LAST_CLICK_POS = None
+
 def handle_click_left(e):
-    print("cam1 clicked")
+    global LAST_CLICK_POS
+    print("left cam clicked")
     print(e.x, e.y)
-    compute_disparity(frameId)
+    x = CAMERA_WIDTH - 1 if e.x >= CAMERA_WIDTH else e.x
+    y = CAMERA_HEIGHT - 1 if e.y >= CAMERA_HEIGHT else e.y
+    LAST_CLICK_POS = (x, y)
+    
 
 def handle_click_right(e):
-    print("cam2 clicked")
-    print(e.x, e.y)
-    compute_disparity(frameId)
+    print("right cam clicked")
 
 def handle_exit(e):
     left.release()
@@ -53,33 +55,53 @@ camr.bind("<Button-1>", handle_click_right)
 
 frame_big.pack()
 
-frame_input = tk.Frame(master=window)
-text = tk.Label(master=frame_input, text="Please input your camera's field of view (FOV):", fg="black")
+frame_input_fov = tk.Frame(master=window)
+text = tk.Label(master=frame_input_fov, text="Please input your camera's field of view (FOV):", fg="black")
 text.pack(padx=5, pady=10, side=tk.LEFT)
 
-entry = tk.Entry(master=frame_input)
-entry.pack(padx=5, pady=10, side=tk.LEFT)
+entry_fov = tk.Entry(master=frame_input_fov)
+entry_fov.pack(padx=5, pady=10, side=tk.LEFT)
 
-def button_callback():
-    global entry, result_text
-    print(f"your current input is {entry.get()}")
+frame_input_baseline = tk.Frame(master=window)
+text = tk.Label(master=frame_input_baseline, text="Please input the baseline (distance) between your cameras:", fg="black")
+text.pack(padx=5, pady=10, side=tk.LEFT)
 
-    result_text["text"] = f"your current input is {entry.get()}"
+entry_basline = tk.Entry(master=frame_input_fov)
+entry_basline.pack(padx=5, pady=10, side=tk.LEFT)
 
-button = tk.Button(master=frame_input, text="Print out input", command=button_callback)
+def button_callback_fov():
+    global entry_fov, result_text
+    print(f"your current input FOV is {entry_fov.get()}")
+
+    result_text["text"] = f"your current input is {entry_fov.get()}"
+
+def button_callback_baseline():
+    global entry_baseline, result_text
+    print(f"your current input baseline is {entry_baseline.get()}")
+
+    result_text["text"] = f"your current input is {entry_baseline.get()}"
+
+button = tk.Button(master=frame_input_fov, text="Print out input FOV", command=button_callback_fov)
 button.pack(padx=5, pady=10, side=tk.LEFT)
 
-result_text = tk.Label(master=frame_input, text="", fg="black")
+result_text = tk.Label(master=frame_input_fov, text="", fg="black")
 result_text.pack(padx=5, pady=10, side=tk.LEFT)
 
-frame_input.pack(side=tk.LEFT)
+frame_input_fov.pack(side=tk.LEFT)
 
-frameId = 0
+button = tk.Button(master=frame_input_baseline, text="Print out input baseline", command=button_callback_baseline)
+button.pack(padx=5, pady=10, side=tk.LEFT)
+
+result_text = tk.Label(master=frame_input_baseline, text="", fg="black")
+result_text.pack(padx=5, pady=10, side=tk.LEFT)
+
+frame_input_baseline.pack(side=tk.LEFT)
+
 leftFrame = np.zeros(2)
 rightFrame = np.zeros(2)
 
 def get_two_frames():
-    global frameId, leftFrame, rightFrame
+    global leftFrame, rightFrame
     if not (left.grab() and right.grab()):
         print("No more frames")
         exit()
@@ -87,21 +109,20 @@ def get_two_frames():
     _, leftFrame = left.retrieve()
     _, rightFrame = right.retrieve()
 
-    if not cv2.imwrite(LEFT_PATH.format(frameId), leftFrame):
-        raise Exception("Could not write image")
-    if not cv2.imwrite(RIGHT_PATH.format(frameId), rightFrame):
-        raise Exception("Could not write image")
-
-    frameId += 1
-
 def show_frame_left():
     get_two_frames()
-    cv2image = cv2.cvtColor(leftFrame, cv2.COLOR_BGR2RGBA)
+    # add ciricle if some cordinate is clicked
+    leftFrame_dotted = leftFrame.copy()
+    if LAST_CLICK_POS is not None:
+        # note that color is BGR
+        leftFrame_dotted = cv2.circle(leftFrame_dotted, LAST_CLICK_POS, radius=3, color=(0, 0, 255), thickness=-1)
+
+    cv2image = cv2.cvtColor(leftFrame_dotted, cv2.COLOR_BGR2RGBA)
     img = Image.fromarray(cv2image)
     imgtk = ImageTk.PhotoImage(image=img)
     caml.imgtk = imgtk
     caml.configure(image=imgtk)
-    caml.after(1000, show_frame_left)
+    caml.after(50, show_frame_left)
 
 def show_frame_right():
     cv2image = cv2.cvtColor(rightFrame, cv2.COLOR_BGR2RGBA)
@@ -109,9 +130,19 @@ def show_frame_right():
     imgtk = ImageTk.PhotoImage(image=img)
     camr.imgtk = imgtk
     camr.configure(image=imgtk)
-    camr.after(1000, show_frame_right)
+    camr.after(50, show_frame_right)
+
+def show_depth():
+    global LAST_CLICK_POS
+    if LAST_CLICK_POS is not None:
+        disparity = compute_disparity(leftFrame, rightFrame)
+        depth_arr = compute_depth(disparity)
+        curr_depth = depth_arr[LAST_CLICK_POS[0]][LAST_CLICK_POS[1]]
+        label = tk.Label(window, text=str(curr_depth), fg="red")
+        label.pack(padx=5, pady=10, side=tk.LEFT)
 
 show_frame_left()
 show_frame_right()
+show_depth()
 
 window.mainloop()
