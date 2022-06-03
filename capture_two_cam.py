@@ -5,11 +5,11 @@ import sys
 LEFT_PATH = sys.path[0] + "\capture\cleft\{:06d}.jpg"
 RIGHT_PATH = sys.path[0] + "\capture\cright\{:06d}.jpg"
 
-CAMERA_WIDTH = 1280
-CAMERA_HEIGHT = 720
+CAMERA_WIDTH = 720
+CAMERA_HEIGHT = 480
 
-left = cv2.VideoCapture(0)
-right = cv2.VideoCapture(1, cv2.CAP_DSHOW)
+left = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+right = cv2.VideoCapture(2, cv2.CAP_DSHOW)
 
 # Increase the resolution
 left.set(cv2.CAP_PROP_FRAME_WIDTH, CAMERA_WIDTH)
@@ -42,10 +42,10 @@ while(True):
     _, rightFrame = right.retrieve()
     # rightFrame = cropHorizontal(rightFrame)
 
-    if not cv2.imwrite(LEFT_PATH.format(frameId), leftFrame):
-        raise Exception("Could not write image")
-    if not cv2.imwrite(RIGHT_PATH.format(frameId), rightFrame):
-        raise Exception("Could not write image")
+    # if not cv2.imwrite(LEFT_PATH.format(frameId), leftFrame):
+    #     raise Exception("Could not write image")
+    # if not cv2.imwrite(RIGHT_PATH.format(frameId), rightFrame):
+    #     raise Exception("Could not write image")
 
     cv2.imshow('left', leftFrame)
     cv2.imshow('right', rightFrame)
