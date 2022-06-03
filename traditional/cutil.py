@@ -1,10 +1,11 @@
 import sys, os
+import ctypes
 from ctypes import *
 import math
 import random
 import numpy as np
 
-lib = CDLL(os.path.join(os.path.dirname(__file__), "util_linux.so"), RTLD_GLOBAL)
+lib = CDLL(os.path.join(os.path.dirname(__file__), "util_win32.so"), RTLD_GLOBAL)
 
 # objects
 class IMAGE(Structure):
@@ -36,12 +37,12 @@ def make_image(w, h, c, data=None):
     im.data = data
     return im
 
-def compute_depth(disparity_raw, f=150.0, d=0.155):
-    disparity_raw = disparity_raw.reshape((1, 110592)).tolist()[0]
+def compute_depth(disparity_raw, f, d, x, y):
+    disparity_raw = disparity_raw.reshape((1, 297600)).tolist()[0]
     carr = (c_float * len(disparity_raw))(*disparity_raw)
-    disparity = make_image(110592, 1, 1, carr)
+    disparity = make_image(620, 480, 1, carr)
     deep_image = compute_depth_helper(disparity, f, d)
-    return np.array(list(deep_image.data)).reshape((480, 620))
+    return deep_image.data[x + y * 640]
 
 def compute_depth_helper(disparity, f, d):
     return compute_depth_lib(disparity, f, d)
