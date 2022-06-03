@@ -34,9 +34,9 @@ stereoMatcher.setSpeckleRange(16)
 stereoMatcher.setSpeckleWindowSize(45)
 right_matcher = cv2.ximgproc.createRightMatcher(stereoMatcher);
 
-def compute_disparity(frameId):
-    leftFrame = cv2.imread(LEFT_PATH.format(frameId - 1))
-    rightFrame = cv2.imread(RIGHT_PATH.format(frameId - 1))
+def compute_disparity(leftFrame, rightFrame):
+    #leftFrame = cv2.imread(LEFT_PATH.format(frameId - 1))
+    #rightFrame = cv2.imread(RIGHT_PATH.format(frameId - 1))
 
     leftFrame = cropHorizontal(leftFrame)
     leftHeight, leftWidth = leftFrame.shape[:2]

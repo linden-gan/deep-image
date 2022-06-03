@@ -9,6 +9,8 @@ from tk_disparity import compute_disparity
 LEFT_PATH = sys.path[0] + "\capture\cleft\{:06d}.jpg"
 RIGHT_PATH = sys.path[0] + "\capture\cright\{:06d}.jpg"
 
+LAST_CLICK_POS = None
+
 left = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 right = cv2.VideoCapture(2, cv2.CAP_DSHOW)
 
@@ -23,14 +25,18 @@ left.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
 right.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
 
 def handle_click_left(e):
+    global LAST_CLICK_POS
+    x = CAMERA_WIDTH - 1 if e.x >= CAMERA_WIDTH else e.x
+    y = CAMERA_HEIGHT - 1 if e.y >= CAMERA_HEIGHT else e.y
+    LAST_CLICK_POS = (x, y)
     print("cam1 clicked")
-    print(e.x, e.y)
-    compute_disparity(frameId)
+    print(x, y)
+    compute_disparity(leftFrame, rightFrame)
 
 def handle_click_right(e):
     print("cam2 clicked")
     print(e.x, e.y)
-    compute_disparity(frameId)
+    compute_disparity(leftFrame, rightFrame)
 
 def handle_exit(e):
     left.release()
@@ -87,21 +93,29 @@ def get_two_frames():
     _, leftFrame = left.retrieve()
     _, rightFrame = right.retrieve()
 
-    if not cv2.imwrite(LEFT_PATH.format(frameId), leftFrame):
-        raise Exception("Could not write image")
-    if not cv2.imwrite(RIGHT_PATH.format(frameId), rightFrame):
-        raise Exception("Could not write image")
+    # refactored out, we don't need to save frames anymore, use global var insted
+    # if not cv2.imwrite(LEFT_PATH.format(frameId), leftFrame):
+    #     raise Exception("Could not write image")
+    # if not cv2.imwrite(RIGHT_PATH.format(frameId), rightFrame):
+    #     raise Exception("Could not write image")
 
     frameId += 1
 
 def show_frame_left():
     get_two_frames()
-    cv2image = cv2.cvtColor(leftFrame, cv2.COLOR_BGR2RGBA)
+
+    # add ciricle if some cordinate is clicked
+    leftFrame_dotted = leftFrame.copy()
+    if LAST_CLICK_POS is not None:
+        # note that color is BGR
+        leftFrame_dotted = cv2.circle(leftFrame_dotted, LAST_CLICK_POS, radius=3, color=(0, 0, 255), thickness=-1)
+
+    cv2image = cv2.cvtColor(leftFrame_dotted, cv2.COLOR_BGR2RGBA)
     img = Image.fromarray(cv2image)
     imgtk = ImageTk.PhotoImage(image=img)
     caml.imgtk = imgtk
     caml.configure(image=imgtk)
-    caml.after(1000, show_frame_left)
+    caml.after(50, show_frame_left)
 
 def show_frame_right():
     cv2image = cv2.cvtColor(rightFrame, cv2.COLOR_BGR2RGBA)
@@ -109,7 +123,7 @@ def show_frame_right():
     imgtk = ImageTk.PhotoImage(image=img)
     camr.imgtk = imgtk
     camr.configure(image=imgtk)
-    camr.after(1000, show_frame_right)
+    camr.after(50, show_frame_right)
 
 show_frame_left()
 show_frame_right()
