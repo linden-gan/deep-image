@@ -13,11 +13,11 @@ rightMapX = calibration["rightMapX"]
 rightMapY = calibration["rightMapY"]
 rightROI = tuple(calibration["rightROI"])
 
-CAMERA_WIDTH = 1280
-CAMERA_HEIGHT = 720
+CAMERA_WIDTH = 1000
+CAMERA_HEIGHT = 800
 
-left = cv2.VideoCapture(0)
-right = cv2.VideoCapture(1)
+left = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+right = cv2.VideoCapture(2, cv2.CAP_DSHOW)
 
 # Increase the resolution
 left.set(cv2.CAP_PROP_FRAME_WIDTH, CAMERA_WIDTH)
@@ -31,7 +31,7 @@ right.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
 
 # The distortion in the left and right edges prevents a good calibration, so
 # discard the edges
-CROP_WIDTH = 1200
+CROP_WIDTH = 980
 def cropHorizontal(image):
     return image[:,
             int((CAMERA_WIDTH-CROP_WIDTH)/2):
@@ -46,6 +46,7 @@ stereoMatcher.setROI1(leftROI)
 stereoMatcher.setROI2(rightROI)
 stereoMatcher.setSpeckleRange(16)
 stereoMatcher.setSpeckleWindowSize(45)
+right_matcher = cv2.ximgproc.createRightMatcher(stereoMatcher);
 
 # Grab both frames first, then retrieve to minimize latency between cameras
 while(True):
@@ -73,12 +74,21 @@ while(True):
 
     grayLeft = cv2.cvtColor(fixedLeft, cv2.COLOR_BGR2GRAY)
     grayRight = cv2.cvtColor(fixedRight, cv2.COLOR_BGR2GRAY)
-    disparity = stereoMatcher.compute(grayLeft, grayRight)
+    left_disp = stereoMatcher.compute(grayLeft, grayRight)
+    right_disp = right_matcher.compute(grayRight,grayLeft);
 
+    wls_filter = cv2.ximgproc.createDisparityWLSFilter(stereoMatcher);
+    wls_filter.setLambda(8000.0);
+    wls_filter.setSigmaColor(1.5);
+    filtered_disp = wls_filter.filter(left_disp, leftFrame, disparity_map_right=right_disp);
+
+
+    cv2.imshow('left_ori', leftFrame)
+    cv2.imshow('right_ori', rightFrame)
     cv2.imshow('left', fixedLeft)
     cv2.imshow('right', fixedRight)
-    cv2.imshow('disparity', disparity)
-    if cv2.waitKey(40) & 0xFF == ord('q'):
+    cv2.imshow('disparity', filtered_disp / 1024)
+    if cv2.waitKey(100) & 0xFF == ord('q'):
         break
 
 left.release()

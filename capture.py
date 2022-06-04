@@ -5,8 +5,8 @@ import sys
 LEFT_PATH = sys.path[0] + "\cam\cleft\{:06d}.jpg"
 RIGHT_PATH = sys.path[0] + "\cam\cright\{:06d}.jpg"
 
-CAMERA_WIDTH = 1280
-CAMERA_HEIGHT = 720
+CAMERA_WIDTH = 640
+CAMERA_HEIGHT = 480
 
 cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 

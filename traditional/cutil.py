@@ -38,11 +38,11 @@ def make_image(w, h, c, data=None):
     return im
 
 def compute_depth(disparity_raw, f, d, x, y):
-    disparity_raw = disparity_raw.reshape((1, 297600)).tolist()[0]
+    disparity_raw = disparity_raw.reshape((1, 564480)).tolist()[0]
     carr = (c_float * len(disparity_raw))(*disparity_raw)
-    disparity = make_image(620, 480, 1, carr)
+    disparity = make_image(980, 576, 1, carr)
     deep_image = compute_depth_helper(disparity, f, d)
-    return deep_image.data[x + y * 640]
+    return deep_image.data[x + y * 980]
 
 def compute_depth_helper(disparity, f, d):
     return compute_depth_lib(disparity, f, d)

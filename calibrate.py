@@ -20,12 +20,12 @@ OPTIMIZE_ALPHA = 0.25
 
 MAX_IMAGES = 64
 
-leftImageDir = sys.path[0] + "\cam\cleft"
-rightImageDir = sys.path[0] + "\cam\cright"
+leftImageDir = sys.path[0] + "\capture\cleft"
+rightImageDir = sys.path[0] + "\capture\cright"
 outputFile = sys.path[0] + "\cam\calib"
 
-CAMERA_WIDTH = 1280
-CROP_WIDTH = 1200
+CAMERA_WIDTH = 1000
+CROP_WIDTH = 980
 def cropHorizontal(image):
     return image[:,
             int((CAMERA_WIDTH-CROP_WIDTH)/2):
@@ -164,11 +164,17 @@ rightMapX = calibration["rightMapX"]
 rightMapY = calibration["rightMapY"]
 rightROI = tuple(calibration["rightROI"])
 
-LEFT_PATH = sys.path[0] + "\cam\cleft\{:06d}.jpg"
+LEFT_PATH = sys.path[0] + "\capture\cleft\{:06d}.jpg"
 im = cv2.imread(LEFT_PATH.format(6))
 cv2.imshow('noncalib', im)
 fixedLeft = cv2.remap(im, leftMapX, leftMapY, REMAP_INTERPOLATION)
 cv2.imshow('calib', fixedLeft)
+
+RIGHT_PATH = sys.path[0] + "\capture\cright\{:06d}.jpg"
+im = cv2.imread(RIGHT_PATH.format(6))
+cv2.imshow('noncalib2', im)
+fixedRight = cv2.remap(im, rightMapX, rightMapY, REMAP_INTERPOLATION)
+cv2.imshow('calib2', fixedRight)
 
 cv2.waitKey()
 
