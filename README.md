@@ -4,6 +4,7 @@ Our final product is an executable that could calculate and display depth inform
 
 ## Motivation & Problem Setup
 Depth informaton are sometime useful. We want our images tell us how far an object is instead of just some flat 2D information. This can be crucial in auto-drive, 3D environment reconstruction, and distance measurement. Certainly, there eixist tools like tape measure or LIDAR that can measure depth information. However, with the help of computer vision stereo matching techniques, we can achieve the same thing with equipments that normal people have in their daily life like webcams or cellphone camaras, as long as we have the parameters like distance between two cameras, focal lengths, and correct calibration. With properly desgined setup, we can even output the depth estimation in real time!
+
 We explored both the traditional (stereo box match, graph cut) and neural network solutions for calculating disparity maps, and finally choose traditional stereo box match to achieve real time depth estimation from two webcams.
 
 ## Data used
