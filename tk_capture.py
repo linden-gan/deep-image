@@ -23,7 +23,7 @@ LAST_CLICK_POS = None
 left = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 right = cv2.VideoCapture(2, cv2.CAP_DSHOW)
 
-CAMERA_WIDTH, CAMERA_HEIGHT = 1024, 576
+CAMERA_WIDTH, CAMERA_HEIGHT = 1280, 720
 left.set(cv2.CAP_PROP_FRAME_WIDTH, CAMERA_WIDTH)
 left.set(cv2.CAP_PROP_FRAME_HEIGHT, CAMERA_HEIGHT)
 right.set(cv2.CAP_PROP_FRAME_WIDTH, CAMERA_WIDTH)
@@ -36,6 +36,11 @@ right.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
 LAST_CLICK_POS = None
 DISPLAY_WIDTH = 640
 DISPLAY_HEIGHT = 480
+CROP_WIDTH = 960
+def cropHorizontal(image):
+    return image[:,
+            int((CAMERA_WIDTH-CROP_WIDTH)/2):
+            int(CROP_WIDTH+(CAMERA_WIDTH-CROP_WIDTH)/2)]
 
 def handle_click_left(e):
     global LAST_CLICK_POS
@@ -48,7 +53,6 @@ def handle_click_left(e):
     print(x)
     print(y)
     
-
 def handle_click_right(e):
     print("right cam clicked")
 
@@ -82,8 +86,8 @@ text.pack(padx=5, pady=10, side=tk.LEFT)
 entry_fov = tk.Entry(master=frame_input_fov)
 entry_fov.pack(padx=5, pady=10, side=tk.LEFT)
 
-fov = 150.0
-baseline = 0.155
+fov = 90
+baseline = 0.15
 
 def button_callback_fov():
     global entry_fov, result_text_fov, fov
@@ -152,17 +156,8 @@ def get_two_frames():
         print("Right camera has different size than the calibration data")
         return
 
-    
-
     fixedLeft = cv2.remap(leftFrame, leftMapX, leftMapY, REMAP_INTERPOLATION)
     fixedRight = cv2.remap(rightFrame, rightMapX, rightMapY, REMAP_INTERPOLATION)
-
-
-CROP_WIDTH = 980
-def cropHorizontal(image):
-    return image[:,
-            int((CAMERA_WIDTH-CROP_WIDTH)/2):
-            int(CROP_WIDTH+(CAMERA_WIDTH-CROP_WIDTH)/2)]
 
 def show_frame_left():
     get_two_frames()
@@ -183,7 +178,6 @@ def show_frame_left():
 def show_frame_right():
     resizedRight = cv2.resize(rightFrame, (640, 480), interpolation = REMAP_INTERPOLATION)
     cv2image = cv2.cvtColor(resizedRight, cv2.COLOR_BGR2RGBA)
-    
     img = Image.fromarray(cv2image)
     imgtk = ImageTk.PhotoImage(image=img)
     camr.imgtk = imgtk
@@ -194,10 +188,11 @@ label = tk.Label(window, text="", fg="red", font="12px")
 label.pack(padx=5, pady=10, side=tk.LEFT)
 
 def show_depth():
-    global LAST_CLICK_POS, label
+    global LAST_CLICK_POS, label, fov
     if LAST_CLICK_POS is not None:
+        f_pix = (CAMERA_WIDTH * 0.5) / np.tan(fov * 0.5 * np.pi / 180)
         disparity = compute_disparity(fixedLeft, fixedRight)
-        curr_depth = compute_depth(disparity, fov, baseline, LAST_CLICK_POS[0], LAST_CLICK_POS[1])
+        curr_depth = compute_depth(disparity, f_pix, baseline, LAST_CLICK_POS[0], LAST_CLICK_POS[1])
         label["text"] = f"depth at the red dot: {str(round(curr_depth, 3))}"
         # print(round(curr_depth, 3))
     label.after(1000, show_depth)

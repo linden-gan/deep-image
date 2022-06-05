@@ -17,7 +17,7 @@ rightMapX = calibration["rightMapX"]
 rightMapY = calibration["rightMapY"]
 rightROI = tuple(calibration["rightROI"])
 
-CAMERA_WIDTH, CAMERA_HEIGHT = 640, 480
+CAMERA_WIDTH, CAMERA_HEIGHT = 980, 576
 CROP_WIDTH = 620
 def cropHorizontal(image):
     return image[:,

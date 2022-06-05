@@ -20,12 +20,14 @@ OPTIMIZE_ALPHA = 0.25
 
 MAX_IMAGES = 64
 
+leftDir = sys.path[0] + "\capture\cleft_alone"
+rightDir = sys.path[0] + "\capture\cright_alone"
 leftImageDir = sys.path[0] + "\capture\cleft"
 rightImageDir = sys.path[0] + "\capture\cright"
 outputFile = sys.path[0] + "\cam\calib"
 
-CAMERA_WIDTH = 1000
-CROP_WIDTH = 980
+CAMERA_WIDTH = 640
+CROP_WIDTH = 620
 def cropHorizontal(image):
     return image[:,
             int((CAMERA_WIDTH-CROP_WIDTH)/2):
@@ -75,9 +77,18 @@ def readImagesAndFindChessboards(imageDirectory):
 
     return filenames, objectPoints, imagePoints, imageSize
 
-(leftFilenames, leftObjectPoints, leftImagePoints, leftSize
+(_, leftObjectPoints, leftImagePoints, leftSize
+        ) = readImagesAndFindChessboards(leftDir)
+(_, rightObjectPoints, rightImagePoints, rightSize
+        ) = readImagesAndFindChessboards(rightDir)
+
+if leftSize != rightSize:
+    print("Camera resolutions do not match")
+    sys.exit(1)
+
+(leftFilenames, leftObjectPoints_sync, leftImagePoints_sync, leftSize
         ) = readImagesAndFindChessboards(leftImageDir)
-(rightFilenames, rightObjectPoints, rightImagePoints, rightSize
+(rightFilenames, rightObjectPoints_sync, rightImagePoints_sync, rightSize
         ) = readImagesAndFindChessboards(rightImageDir)
 
 if leftSize != rightSize:
@@ -107,26 +118,25 @@ def getMatchingObjectAndImagePoints(requestedFilenames,
 
     return requestedObjectPoints, requestedImagePoints
 
-leftObjectPoints, leftImagePoints = getMatchingObjectAndImagePoints(filenames,
-        leftFilenames, leftObjectPoints, leftImagePoints)
-rightObjectPoints, rightImagePoints = getMatchingObjectAndImagePoints(filenames,
-        rightFilenames, rightObjectPoints, rightImagePoints)
+leftObjectPoints_sync, leftImagePoints_sync = getMatchingObjectAndImagePoints(filenames,
+        leftFilenames, leftObjectPoints_sync, leftImagePoints_sync)
+rightObjectPoints_sync, rightImagePoints_sync = getMatchingObjectAndImagePoints(filenames,
+        rightFilenames, rightObjectPoints_sync, rightImagePoints_sync)
 
-if not np.array_equiv(leftObjectPoints, rightObjectPoints):
+if not np.array_equiv(leftObjectPoints_sync, rightObjectPoints_sync):
     print("Object points do not match")
     sys.exit(1)
-objectPoints = leftObjectPoints
 
 print("Calibrating left camera...")
 _, leftCameraMatrix, leftDistortionCoefficients, _, _ = cv2.calibrateCamera(
-        objectPoints, leftImagePoints, imageSize, None, None)
+        leftObjectPoints, leftImagePoints, imageSize, None, None)
 print("Calibrating right camera...")
 _, rightCameraMatrix, rightDistortionCoefficients, _, _ = cv2.calibrateCamera(
-        objectPoints, rightImagePoints, imageSize, None, None)
+        rightObjectPoints, rightImagePoints, imageSize, None, None)
 
 print("Calibrating cameras together...")
 (_, _, _, _, _, rotationMatrix, translationVector, _, _) = cv2.stereoCalibrate(
-        objectPoints, leftImagePoints, rightImagePoints,
+        leftObjectPoints_sync, leftImagePoints_sync, rightImagePoints_sync,
         leftCameraMatrix, leftDistortionCoefficients,
         rightCameraMatrix, rightDistortionCoefficients,
         imageSize, None, None, None, None,
@@ -165,16 +175,16 @@ rightMapY = calibration["rightMapY"]
 rightROI = tuple(calibration["rightROI"])
 
 LEFT_PATH = sys.path[0] + "\capture\cleft\{:06d}.jpg"
-im = cv2.imread(LEFT_PATH.format(6))
-cv2.imshow('noncalib', im)
+im = cv2.imread(LEFT_PATH.format(10))
+cv2.imshow('left', im)
 fixedLeft = cv2.remap(im, leftMapX, leftMapY, REMAP_INTERPOLATION)
-cv2.imshow('calib', fixedLeft)
+cv2.imshow('left_calib', fixedLeft)
 
 RIGHT_PATH = sys.path[0] + "\capture\cright\{:06d}.jpg"
-im = cv2.imread(RIGHT_PATH.format(6))
-cv2.imshow('noncalib2', im)
+im = cv2.imread(RIGHT_PATH.format(10))
+cv2.imshow('right', im)
 fixedRight = cv2.remap(im, rightMapX, rightMapY, REMAP_INTERPOLATION)
-cv2.imshow('calib2', fixedRight)
+cv2.imshow('right_calib', fixedRight)
 
 cv2.waitKey()
 

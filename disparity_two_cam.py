@@ -13,11 +13,11 @@ rightMapX = calibration["rightMapX"]
 rightMapY = calibration["rightMapY"]
 rightROI = tuple(calibration["rightROI"])
 
-CAMERA_WIDTH = 1000
-CAMERA_HEIGHT = 800
+CAMERA_WIDTH = 1024
+CAMERA_HEIGHT = 576
 
-left = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-right = cv2.VideoCapture(2, cv2.CAP_DSHOW)
+left = cv2.VideoCapture(1, cv2.CAP_DSHOW)
+right = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
 # Increase the resolution
 left.set(cv2.CAP_PROP_FRAME_WIDTH, CAMERA_WIDTH)
@@ -88,7 +88,7 @@ while(True):
     cv2.imshow('left', fixedLeft)
     cv2.imshow('right', fixedRight)
     cv2.imshow('disparity', filtered_disp / 1024)
-    if cv2.waitKey(100) & 0xFF == ord('q'):
+    if cv2.waitKey() & 0xFF == ord('q'):
         break
 
 left.release()
