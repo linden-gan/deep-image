@@ -1,0 +1,5 @@
+left/kitchen_l.png right/kitchen_r.png
+left/scene_l.png right/scene_r.png
+left/hall_l.png right/hall_r.png
+left/chess_l.png right/chess_r.png
+left/kitti_l.png right/kitti_r.png
