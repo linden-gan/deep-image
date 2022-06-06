@@ -13,10 +13,6 @@ class IMAGE(Structure):
                 ("h", c_int),
                 ("c", c_int),
                 ("data", POINTER(c_float))]
-    # def __add__(self, other):
-    #     return add_image(self, other)
-    # def __sub__(self, other):
-    #     return sub_image(self, other)
 
 
 class POINT(Structure):
@@ -38,11 +34,11 @@ def make_image(w, h, c, data=None):
     return im
 
 def compute_depth(disparity_raw, f, d, x, y):
-    disparity_raw = disparity_raw.reshape((1, 564480)).tolist()[0]
+    disparity_raw = disparity_raw.reshape((1, 307200)).tolist()[0]
     carr = (c_float * len(disparity_raw))(*disparity_raw)
-    disparity = make_image(980, 576, 1, carr)
+    disparity = make_image(640, 480, 1, carr)
     deep_image = compute_depth_helper(disparity, f, d)
-    return deep_image.data[x + y * 980]
+    return deep_image.data[x + y * 640]
 
 def compute_depth_helper(disparity, f, d):
     return compute_depth_lib(disparity, f, d)

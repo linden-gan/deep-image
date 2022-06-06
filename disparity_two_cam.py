@@ -13,8 +13,8 @@ rightMapX = calibration["rightMapX"]
 rightMapY = calibration["rightMapY"]
 rightROI = tuple(calibration["rightROI"])
 
-CAMERA_WIDTH = 1024
-CAMERA_HEIGHT = 576
+CAMERA_WIDTH = 640
+CAMERA_HEIGHT = 480
 
 left = cv2.VideoCapture(1, cv2.CAP_DSHOW)
 right = cv2.VideoCapture(0, cv2.CAP_DSHOW)
@@ -31,25 +31,57 @@ right.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
 
 # The distortion in the left and right edges prevents a good calibration, so
 # discard the edges
-CROP_WIDTH = 980
+CROP_WIDTH = 640
 def cropHorizontal(image):
     return image[:,
             int((CAMERA_WIDTH-CROP_WIDTH)/2):
             int(CROP_WIDTH+(CAMERA_WIDTH-CROP_WIDTH)/2)]
 
 # Try applying brightness/contrast/gamma adjustments to the images
-stereoMatcher = cv2.StereoBM_create()
-stereoMatcher.setMinDisparity(4)
-stereoMatcher.setNumDisparities(128)
-stereoMatcher.setBlockSize(21)
-stereoMatcher.setROI1(leftROI)
-stereoMatcher.setROI2(rightROI)
-stereoMatcher.setSpeckleRange(16)
-stereoMatcher.setSpeckleWindowSize(45)
-right_matcher = cv2.ximgproc.createRightMatcher(stereoMatcher);
+# window_size = 5  # wsize default 3; 5; 7 for SGBM reduced size image; 15 for SGBM full size image (1300px and above); 5 Works nicely
 
+# stereoMatcher = cv2.StereoSGBM_create(
+#     minDisparity=-1,
+#     numDisparities=6*16,
+#     blockSize=window_size,
+#     P1=8 * 3 * window_size,
+#     P2=32 * 3 * window_size,
+#     disp12MaxDiff=12,
+#     uniquenessRatio=10,
+#     speckleWindowSize=50,
+#     speckleRange=32,
+#     preFilterCap=63,
+#     mode=cv2.STEREO_SGBM_MODE_SGBM_3WAY
+# )
+window_size = 13
+# stereoMatcher = cv2.StereoBM_create()
+# stereoMatcher.setMinDisparity(4)
+# stereoMatcher.setNumDisparities(128)
+# stereoMatcher.setBlockSize(window_size)
+# stereoMatcher.setROI1(leftROI)
+# stereoMatcher.setROI2(rightROI)
+# stereoMatcher.setSpeckleRange(16)
+# stereoMatcher.setSpeckleWindowSize(45)
+
+stereoMatcher = cv2.StereoSGBM_create(
+    minDisparity=-1,
+    numDisparities=5*16,
+    blockSize=window_size,
+    P1=8 * 3 * window_size,
+    P2=32 * 3 * window_size,
+    disp12MaxDiff=12,
+    uniquenessRatio=10,
+    speckleWindowSize=50,
+    speckleRange=32,
+    preFilterCap=63,
+    mode=cv2.STEREO_SGBM_MODE_SGBM_3WAY
+)
+right_matcher = cv2.ximgproc.createRightMatcher(stereoMatcher)
+
+frameId = 0
 # Grab both frames first, then retrieve to minimize latency between cameras
 while(True):
+    
     if not left.grab() or not right.grab():
         print("No more frames")
         break
@@ -68,7 +100,7 @@ while(True):
     if (rightWidth, rightHeight) != imageSize:
         print("Right camera has different size than the calibration data")
         break
-
+    # if frameId == 100:
     fixedLeft = cv2.remap(leftFrame, leftMapX, leftMapY, REMAP_INTERPOLATION)
     fixedRight = cv2.remap(rightFrame, rightMapX, rightMapY, REMAP_INTERPOLATION)
 
@@ -87,9 +119,13 @@ while(True):
     cv2.imshow('right_ori', rightFrame)
     cv2.imshow('left', fixedLeft)
     cv2.imshow('right', fixedRight)
-    cv2.imshow('disparity', filtered_disp / 1024)
-    if cv2.waitKey() & 0xFF == ord('q'):
+    cv2.imshow('disparity', filtered_disp / 512)
+        # if cv2.waitKey() & 0xFF == ord('q'):
+        #     break
+    if cv2.waitKey(40) & 0xFF == ord('q'):
         break
+    
+    frameId += 1
 
 left.release()
 right.release()

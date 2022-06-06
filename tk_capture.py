@@ -7,23 +7,12 @@ import sys
 from tk_disparity import compute_disparity
 from traditional.cutil import compute_depth
 
-REMAP_INTERPOLATION = cv2.INTER_LINEAR
-
-calibration = np.load(sys.path[0] + "\cam\calib.npz", allow_pickle=False)
-imageSize = tuple(calibration["imageSize"])
-leftMapX = calibration["leftMapX"]
-leftMapY = calibration["leftMapY"]
-leftROI = tuple(calibration["leftROI"])
-rightMapX = calibration["rightMapX"]
-rightMapY = calibration["rightMapY"]
-rightROI = tuple(calibration["rightROI"])
-
 LAST_CLICK_POS = None
 
-left = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-right = cv2.VideoCapture(2, cv2.CAP_DSHOW)
+left = cv2.VideoCapture(1, cv2.CAP_DSHOW)
+right = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
-CAMERA_WIDTH, CAMERA_HEIGHT = 1280, 720
+CAMERA_WIDTH, CAMERA_HEIGHT = 640, 480
 left.set(cv2.CAP_PROP_FRAME_WIDTH, CAMERA_WIDTH)
 left.set(cv2.CAP_PROP_FRAME_HEIGHT, CAMERA_HEIGHT)
 right.set(cv2.CAP_PROP_FRAME_WIDTH, CAMERA_WIDTH)
@@ -34,21 +23,16 @@ left.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
 right.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
 
 LAST_CLICK_POS = None
-DISPLAY_WIDTH = 640
-DISPLAY_HEIGHT = 480
-CROP_WIDTH = 960
-def cropHorizontal(image):
-    return image[:,
-            int((CAMERA_WIDTH-CROP_WIDTH)/2):
-            int(CROP_WIDTH+(CAMERA_WIDTH-CROP_WIDTH)/2)]
+
+REMAP_INTERPOLATION = cv2.INTER_LINEAR
 
 def handle_click_left(e):
     global LAST_CLICK_POS
     print("left cam clicked")
-    x = e.x * CROP_WIDTH / DISPLAY_WIDTH
-    y = e.y * CAMERA_HEIGHT / DISPLAY_HEIGHT
-    x = DISPLAY_WIDTH - 1 if e.x >= DISPLAY_WIDTH else e.x
-    y = DISPLAY_HEIGHT - 1 if e.y >= DISPLAY_HEIGHT else e.y
+    # x = e.x * CROP_WIDTH / DISPLAY_WIDTH
+    # y = e.y * CAMERA_HEIGHT / DISPLAY_HEIGHT
+    x = CAMERA_WIDTH - 1 if e.x >= CAMERA_WIDTH else e.x
+    y = CAMERA_HEIGHT - 1 if e.y >= CAMERA_HEIGHT else e.y
     LAST_CLICK_POS = (x, y)
     print(x)
     print(y)
@@ -113,7 +97,7 @@ result_text_fov.pack(padx=5, pady=10, side=tk.LEFT)
 frame_input_fov.grid(row=0, column=0, sticky='w')
 
 frame_input_baseline = tk.Frame(master=frame_input_parent)
-text = tk.Label(master=frame_input_baseline, text="Please input the baseline (distance) between your cameras in meter, default = 0.155:", fg="black")
+text = tk.Label(master=frame_input_baseline, text="Please input the baseline (distance) between your cameras in meter, default = 0.15:", fg="black")
 text.pack(padx=5, pady=10, side=tk.LEFT)
 
 entry_baseline = tk.Entry(master=frame_input_baseline)
@@ -143,21 +127,8 @@ def get_two_frames():
     
     _, leftFrame = left.retrieve()
     _, rightFrame = right.retrieve()
-    leftFrame = cropHorizontal(leftFrame)
     leftHeight, leftWidth = leftFrame.shape[:2]
-    rightFrame = cropHorizontal(rightFrame)
     rightHeight, rightWidth = rightFrame.shape[:2]
-
-    if (leftWidth, leftHeight) != imageSize:
-        print("Left camera has different size than the calibration data")
-        return
-
-    if (rightWidth, rightHeight) != imageSize:
-        print("Right camera has different size than the calibration data")
-        return
-
-    fixedLeft = cv2.remap(leftFrame, leftMapX, leftMapY, REMAP_INTERPOLATION)
-    fixedRight = cv2.remap(rightFrame, rightMapX, rightMapY, REMAP_INTERPOLATION)
 
 def show_frame_left():
     get_two_frames()
@@ -191,8 +162,9 @@ def show_depth():
     global LAST_CLICK_POS, label, fov
     if LAST_CLICK_POS is not None:
         f_pix = (CAMERA_WIDTH * 0.5) / np.tan(fov * 0.5 * np.pi / 180)
-        disparity = compute_disparity(fixedLeft, fixedRight)
-        curr_depth = compute_depth(disparity, f_pix, baseline, LAST_CLICK_POS[0], LAST_CLICK_POS[1])
+        disparity = compute_disparity(leftFrame, rightFrame)
+        # print(disparity.shape)
+        curr_depth = compute_depth(disparity / 16, f_pix, baseline, LAST_CLICK_POS[0], LAST_CLICK_POS[1])
         label["text"] = f"depth at the red dot: {str(round(curr_depth, 3))}"
         # print(round(curr_depth, 3))
     label.after(1000, show_depth)

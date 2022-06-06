@@ -26,16 +26,11 @@ leftImageDir = sys.path[0] + "\capture\cleft"
 rightImageDir = sys.path[0] + "\capture\cright"
 outputFile = sys.path[0] + "\cam\calib"
 
-CAMERA_WIDTH = 640
-CROP_WIDTH = 620
-def cropHorizontal(image):
-    return image[:,
-            int((CAMERA_WIDTH-CROP_WIDTH)/2):
-            int(CROP_WIDTH+(CAMERA_WIDTH-CROP_WIDTH)/2)]
+CAMERA_WIDTH, CAMERA_HEIGHT = 640, 480
 
 def readImagesAndFindChessboards(imageDirectory):
     print("Reading images at {0}".format(imageDirectory))
-    imagePaths = glob.glob("{0}/*.jpg".format(imageDirectory))
+    imagePaths = glob.glob("{0}/*.png".format(imageDirectory))
 
     filenames = []
     objectPoints = []
@@ -44,7 +39,6 @@ def readImagesAndFindChessboards(imageDirectory):
 
     for imagePath in sorted(imagePaths):
         image = cv2.imread(imagePath)
-        image = cropHorizontal(image)
         grayImage = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
         newSize = grayImage.shape[::-1]
@@ -66,8 +60,6 @@ def readImagesAndFindChessboards(imageDirectory):
 
         cv2.drawChessboardCorners(image, CHESSBOARD_SIZE, corners, hasCorners)
         cv2.imshow(imageDirectory, image)
-
-        # Needed to draw the window
         cv2.waitKey(1)
 
     cv2.destroyWindow(imageDirectory)
@@ -130,9 +122,22 @@ if not np.array_equiv(leftObjectPoints_sync, rightObjectPoints_sync):
 print("Calibrating left camera...")
 _, leftCameraMatrix, leftDistortionCoefficients, _, _ = cv2.calibrateCamera(
         leftObjectPoints, leftImagePoints, imageSize, None, None)
+
 print("Calibrating right camera...")
 _, rightCameraMatrix, rightDistortionCoefficients, _, _ = cv2.calibrateCamera(
         rightObjectPoints, rightImagePoints, imageSize, None, None)
+
+leftCameraMatrix, roi=cv2.getOptimalNewCameraMatrix(leftCameraMatrix, 
+                                                    leftDistortionCoefficients,
+                                                    (CAMERA_WIDTH,CAMERA_HEIGHT),
+                                                    1,
+                                                    (CAMERA_WIDTH,CAMERA_HEIGHT))
+
+rightCameraMatrix, roi=cv2.getOptimalNewCameraMatrix(rightCameraMatrix,
+                                                     rightDistortionCoefficients,
+                                                     (CAMERA_WIDTH,CAMERA_HEIGHT),
+                                                     1,
+                                                     (CAMERA_WIDTH,CAMERA_HEIGHT))
 
 print("Calibrating cameras together...")
 (_, _, _, _, _, rotationMatrix, translationVector, _, _) = cv2.stereoCalibrate(
@@ -163,29 +168,36 @@ np.savez_compressed(outputFile, imageSize=imageSize,
         leftMapX=leftMapX, leftMapY=leftMapY, leftROI=leftROI,
         rightMapX=rightMapX, rightMapY=rightMapY, rightROI=rightROI)
 
-REMAP_INTERPOLATION = cv2.INTER_LINEAR
 
-calibration = np.load(sys.path[0] + "\cam\calib.npz", allow_pickle=False)
-imageSize = tuple(calibration["imageSize"])
-leftMapX = calibration["leftMapX"]
-leftMapY = calibration["leftMapY"]
-leftROI = tuple(calibration["leftROI"])
-rightMapX = calibration["rightMapX"]
-rightMapY = calibration["rightMapY"]
-rightROI = tuple(calibration["rightROI"])
+# Code to test the calibration
 
-LEFT_PATH = sys.path[0] + "\capture\cleft\{:06d}.jpg"
-im = cv2.imread(LEFT_PATH.format(10))
-cv2.imshow('left', im)
-fixedLeft = cv2.remap(im, leftMapX, leftMapY, REMAP_INTERPOLATION)
-cv2.imshow('left_calib', fixedLeft)
+# REMAP_INTERPOLATION = cv2.INTER_LINEAR
 
-RIGHT_PATH = sys.path[0] + "\capture\cright\{:06d}.jpg"
-im = cv2.imread(RIGHT_PATH.format(10))
-cv2.imshow('right', im)
-fixedRight = cv2.remap(im, rightMapX, rightMapY, REMAP_INTERPOLATION)
-cv2.imshow('right_calib', fixedRight)
+# calibration = np.load(sys.path[0] + "\cam\calib.npz", allow_pickle=False)
+# imageSize = tuple(calibration["imageSize"])
+# leftMapX = calibration["leftMapX"]
+# leftMapY = calibration["leftMapY"]
+# leftROI = tuple(calibration["leftROI"])
+# rightMapX = calibration["rightMapX"]
+# rightMapY = calibration["rightMapY"]
+# rightROI = tuple(calibration["rightROI"])
 
-cv2.waitKey()
+# LEFT_PATH = sys.path[0] + "\mleft.png"
+# im = cv2.imread(LEFT_PATH.format(10))
+# im = cv2.resize(im, (640, 480), interpolation = cv2.INTER_LINEAR)
+# cv2.imshow('left', im)
+# fixedLeft = cv2.remap(im, leftMapX, leftMapY, REMAP_INTERPOLATION)
+# cv2.imshow('left_calib', fixedLeft)
+# cv2.imwrite(sys.path[0] + "\cmleft.png", fixedLeft)
 
-cv2.destroyAllWindows()
+# RIGHT_PATH = sys.path[0] + "\mright.png"
+# im = cv2.imread(RIGHT_PATH.format(10))
+# im = cv2.resize(im, (640, 480), interpolation = cv2.INTER_LINEAR)
+# cv2.imshow('right', im)
+# fixedRight = cv2.remap(im, rightMapX, rightMapY, REMAP_INTERPOLATION)
+# cv2.imshow('right_calib', fixedRight)
+# cv2.imwrite(sys.path[0] + "\cmright.png", fixedRight)
+
+# cv2.waitKey()
+
+# cv2.destroyAllWindows()

@@ -2,14 +2,14 @@ import numpy as np
 import cv2
 import sys
 
-LEFT_PATH = sys.path[0] + "\capture\cleft\{:06d}.jpg"
-RIGHT_PATH = sys.path[0] + "\capture\cright\{:06d}.jpg"
+LEFT_PATH = sys.path[0] + "\capture\cleft\{:06d}.png"
+RIGHT_PATH = sys.path[0] + "\capture\cright\{:06d}.png"
 
-CAMERA_WIDTH = 1000
-CAMERA_HEIGHT = 800
+CAMERA_WIDTH = 640
+CAMERA_HEIGHT = 480
 
-left = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-right = cv2.VideoCapture(2, cv2.CAP_DSHOW)
+left = cv2.VideoCapture(1, cv2.CAP_DSHOW)
+right = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
 # Increase the resolution
 left.set(cv2.CAP_PROP_FRAME_WIDTH, CAMERA_WIDTH)
@@ -32,12 +32,12 @@ while(True):
     _, leftFrame = left.retrieve()
     _, rightFrame = right.retrieve()
 
-    if frameId != 0 and frameId % 200 == 0:
-        if not cv2.imwrite(LEFT_PATH.format(frameId // 200), leftFrame):
+    if frameId != 0 and frameId % 120 == 0:
+        if not cv2.imwrite(LEFT_PATH.format(frameId // 120), leftFrame):
             raise Exception("Could not write image")
-        if not cv2.imwrite(RIGHT_PATH.format(frameId // 200), rightFrame):
+        if not cv2.imwrite(RIGHT_PATH.format(frameId // 120), rightFrame):
             raise Exception("Could not write image")
-        print("images took" + str(frameId // 200))
+        print("images took" + str(frameId // 120))
 
     cv2.imshow('left', leftFrame)
     cv2.imshow('right', rightFrame)
