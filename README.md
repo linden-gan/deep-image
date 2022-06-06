@@ -56,16 +56,21 @@ We explored both the traditional methods, including stereo box match and graph c
 |<img src="img/mleft.png" alt="left_uncalib" width="500"/> Original Left |  <img src="img/mright.png" alt="right_uncalib" width="500"/> Original Right 
 |<img src="img/cmleft.png" alt="left_calib" width="500"/> Calibrated Left |<img src="img/cmleft.png" alt="left_calib" width="500"/> Calibrated Right |
 
-- Disparity Map: Having texture in the images is important for genereating a good disparity map. When we tried to calculate the depth indoor with a lot of repetitive patterns and insufficient lighting, we got extremely unstable disparity maps and thus making our depth display inconsistent. We played with StereoBM and StereoSGBM algorithms provided by OpenCV, tweaked the parameters like blockSize and numDisparities, and did some post-filtering, but still could not remove the noise in the disparity map.
+- Disparity Map: Having texture in the images is important for genereating a good disparity map. When we tried to calculate the depth with a lot of repetitive patterns in the background, we got extremely unstable disparity maps and thus making our depth display inconsistent. We played with StereoBM and StereoSGBM algorithms provided by OpenCV, tweaked the parameters like blockSize and numDisparities, and did some post-filtering, but still could not remove the noise in the disparity map.
 
-- Graph Cut Algorithm: To generate high-quality disparity map, we also tried the graph cut algorithm. [One repo](https://github.com/NathanChenJiabin/GraphCut-Stereo-Disparity) we tested on took about 5 seconds to generate a low resolution diaparity map, which could not achieve real time. We ran [another repo](https://github.com/pmonasse/disparity-with-graph-cuts) on attu, which worked at a decent speed and had a good accuracy. However, there were not a lot of parameters that we could work with.
+| Original Image | OpenCV Disparity Map | Second Graph Cut Disparity Map |
+|:-------------------------:|:-------------------------:|:-------------------------:|
+|<img src="img/cmleft.png" alt="original left image" width="400"/>|<img src="img/opencv mercer.png" alt="opencv disparity map" width="400"/>|<img src="img/graph cut mercer.png" alt="graph cut disparity map" width="400"/>
+
+- Graph Cut Algorithms: To generate high-quality disparity map, we also tried the graph cut algorithms. [One repo](https://github.com/NathanChenJiabin/GraphCut-Stereo-Disparity) we tested on took about 15 seconds to generate a low resolution diaparity map, which could not achieve real time. We ran [another repo](https://github.com/pmonasse/disparity-with-graph-cuts) on attu, which again worked slowly at around 30 seconds but had a good accuracy. There were not a lot of parameters that we could work with for the graph cut algorithms. We tried to decrease the disparity range to increase the speed, but the accuracy was decreased the time was far from achieving real time.
 
 | First Graph Cut Repo | Second Graph Cut Repo |
 |:-------------------------:|:-------------------------:|
-|<img src="img/graph cut 1.jpg" alt="first graph cut reuslt" width="400"/>|<img src="img/graph cut 2.png" alt="second graph cut result" width="400"/>
+|<img src="img/graph cut 1.jpg" alt="first graph cut reuslt" width="320"/>|<img src="img/graph cut 2.png" alt="second graph cut result" width="320"/>
 
 #### Future Improvement
 - We got a lot of noise using the OpenCV stereo disparity algorithm on our own images, resulting in a unstable real time disparity or depth map. We can write our own box matching algorithm, or deploying the graph cut algorithm in the future to see if we can fix the problem.
+
 - We put the webcams on our computer and sometimes they got shaky, making our experiments prone to error and have little flexbility. We can diy a better equipment for our future experimentation.
 
 #### Components from preexisting work (code from github, other libraries)
