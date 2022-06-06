@@ -1,11 +1,11 @@
 # Deep image
-Extract depth information from a pair of stereo images. \
-Our final product is an executable that could calculate and display depth information at clicked position using two webcams in real time.
+Extract real-time depth information from a pair of stereo images. \
+Our final product is an executable that could calculate and display depth information at a clicked position in real time.
 
 ## Motivation & Problem Setup
-Depth informaton are sometime useful. We want our images tell us how far an object is instead of just some flat 2D information. This can be crucial in auto-drive, 3D environment reconstruction, and distance measurement. Certainly, there eixist tools like tape measure or LIDAR that can measure depth information. However, with the help of computer vision stereo matching techniques, we can achieve the same thing with equipments that normal people have in their daily life like webcams or cellphone camaras, as long as we have the parameters like distance between two cameras, focal lengths, and correct calibration. With properly desgined setup, we can even output the depth estimation in real time!
+Depth informaton are useful. We want to be able to tell how far an object is by images, which can give us more than just flat 2D information. This technology can be crucial in auto-drive, 3D environment reconstruction, and distance measurement. Certainly, there exists tools like tape measure or LIDAR that can measure depth information. However, with the help of computer vision stereo matching technique, we can achieve the same thing with equipments that normal people have in their daily life like webcams or cellphone camaras, as long as we have the parameters like distance between two cameras, field of view or focal length of the camera, and proper calibration. With our setup, we can even output depth values in real time!
 
-We explored both the traditional (stereo box match, graph cut) and neural network solutions for calculating disparity maps, and finally choose traditional stereo box match to achieve real time depth estimation from two webcams.
+We explored both the traditional methods, including stereo box match and graph cut, and neural network solutions for calculating disparity maps, and finally chose traditional stereo box match which could achieve real time depth estimation by two webcams.
 
 ## Data used
 - Photos taken by ourselves
@@ -16,14 +16,14 @@ We explored both the traditional (stereo box match, graph cut) and neural networ
 ### Traditional (based on opencv, stereo box match)
 #### Prereq
 - numpy (`pip install numpy`)
-- opencv (cv2) (`pip install opencv-python`)
+- opencv (cv2) (`pip install opencv-contrib-python`)
 - matplotlib (`pip install matplotlib`)
-- gcc compiler (already installed in Linux and Mac, for Windows machines please download MinGW for gcc [here](https://www.mingw-w64.org/))
-- hardwares (two cameras, recommended to use two exactly same webcams so that they can be easily connected to computers and produce same-size images)
+- gcc compiler (already installed in Linux and Mac, for Windows machines please download MinGW for gcc [here](https://www.mingw-w64.org/), for usage see .\traditional\cutil.py)
+- hardwares (two cameras, recommended to use two exactly same webcams so that they can be easily connected to computers and produce same-size images with similar camera intrinsics and extrinsics)
 
 #### Pipeline & Algorithm
-- First, we caliberate our webcams to get rid of distorted margin. Next, we input two stereo images to OpenCV's library function to get a disparity map, which represents shifts of each pair of pixels from left and right images. Then, we compute the depth of each pixel based on its shift. Finally, we output the depth information so that user can know each pixel's depth once they click it.
-- Let's go through the algorithm. Here is a figure showing what we know and what are unknown:     
+- First, we caliberate our webcams individually with a 7*5 checkerboard to get their camera matrices and distortion coefficients. Then, we calibrate and rectify cameras together to deal with possible rotation and translation, and eventually make the images align perfectly on the horizontal axis. Next, we input the calibrated and rectified stereo images to OpenCV's library function to generate a disparity map, which contains the pixel difference of each pixel in the left image. We compute the depth of each pixel based on its shift, combining with the baseline and field of view of the cameras. Finally, we output the depth information by allowing users to click on the left image and print out the depth value of the corresponding position.
+- Let's go through the disparity to depth algorithm. Here is a figure showing what we know and what are unknown:     
 <img src="img/algo1.jpg" alt="algo1" width="500"/>
 
 - Typically, we know focal length, two cameras' distance (called displacement), and pixel's shift. We want to compute the vertical distance. To construct similar triangles, we do the following geometry trick:    

@@ -5,6 +5,9 @@ import math
 import random
 import numpy as np
 
+# Change to the following line if you are on linux 
+# You can generate the .so file by gcc -o util_linux.so -shared -fPIC -O2 util.c
+# lib = CDLL(os.path.join(os.path.dirname(__file__), "util_linux.so"), RTLD_GLOBAL)
 lib = CDLL(os.path.join(os.path.dirname(__file__), "util_win32.so"), RTLD_GLOBAL)
 
 # objects
