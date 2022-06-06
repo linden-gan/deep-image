@@ -1,9 +1,5 @@
-import sys, os
-import ctypes
+import  os
 from ctypes import *
-import math
-import random
-import numpy as np
 
 # Change to the following line if you are on linux 
 # You can generate the .so file by gcc -o util_linux.so -shared -fPIC -O2 util.c
