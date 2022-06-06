@@ -26,10 +26,10 @@ We explored both the traditional methods, including stereo box match and graph c
 - Let's go through the disparity to depth algorithm. Here is a figure showing what we know and what are unknown:     
 <img src="img/algo1.jpg" alt="algo1" width="500"/>
 
-- Typically, we know focal length, two cameras' distance (called displacement or baseline), and pixel's shift. We want to compute the vertical distance. To construct similar triangles, we do the following geometry trick:
+- Typically, we know focal length, two cameras' distance (called displacement or baseline), and pixel's shift. We want to compute the vertical distance. To construct similar triangles, we do the following geometry trick:\
 <img src="img/algo2.jpg" alt="algo2" width="500"/>
 
-- By shifting the blue line left, we construct a parallelogram. By the property of parallelogram, we know the bottom displacement is equal to the upper displacement. Now, we can see a pair of similar triangles:
+- By shifting the blue line left, we construct a parallelogram. By the property of parallelogram, we know the bottom displacement is equal to the upper displacement. Now, we can see a pair of similar triangles:\
 <img src="img/algo3.jpg" alt="algo3" width="500"/>
 
 - By the property of similar triangles, we know `focal length / pixel shift = vertical distance / displacement` . Note that the height of the bigger triangle should be vertical distance plus focal length, but given that focal length is too small compared to actual distance, we can safely ignore it. As a result, we can have a nice formula: `vertical distance = focal length * displacement / pixel shift`
@@ -43,9 +43,40 @@ We explored both the traditional methods, including stereo box match and graph c
 - We know the line connecting focal point and the center of the image is vertical to the image, and the length of this line is just our focal length. We can also know the distance of a pixel to image center. Now, we can use these values to compute distance from focal point to the pixel, which is just the thing we want, by Pythagorean Theorem.
 - That's how we compute the real depth of a pixel!
 
-#### Challenges we ran into
-- Calibration: The calibration step was tricky. At the beginning, we used the same set of images for calibrating individual cameras and calibrating both cameras. It did not work well. The images got zoomed in wierdly after rectification and they were not aligned perfectly horizontally. To deal with the problem, we decided to shoot different sets of images for calibrating individual cameras, and we used the png format instead jpg when saving images. We later found out the checkerboard was crucial as well. We did not succeed in one go because we did not make sure we had different angles and positions when we held the checkerboard. After shooting about 25 images for each calibration, we made pretty good .
+#### How to Run Our Program
+- Run python tk_capture.py to start the application.
+- Input the baseline and field of view values according to your cameras.
+- Click on the point of interest in the left image and read the depth value in the bottom right corner.
 
+#### Challenges we ran into
+- Calibration: The calibration step was tricky. At the beginning, we used the same set of images for calibrating individual cameras and calibrating both cameras. It did not work well. The images got zoomed in wierdly after rectification and they were not aligned perfectly horizontally. To deal with the problem, we decided to shoot different sets of images for calibrating individual cameras, and we used the png format instead jpg when saving images. We later found out the checkerboard was crucial as well. We did not succeed in one go because we did not make sure we had different angles and positions when we held the checkerboard. After shooting about 25 images for each calibration, we got a pretty good result.
+
+| Left | Right |
+|:-------------------------:|:-------------------------:|
+|<img src="img/mleft.png" alt="left_uncalib" width="500"/> Original Left |  <img src="img/mright.png" alt="right_uncalib" width="500"/> Original Right 
+|<img src="img/cmleft.png" alt="left_calib" width="500"/> Calibrated Left |<img src="img/cmleft.png" alt="left_calib" width="500"/> Calibrated Right |
+
+- Disparity Map: Having texture in the images is important for genereating a good disparity map. When we tried to calculate the depth indoor with a lot of repetitive patterns and insufficient lighting, we got extremely unstable disparity maps and thus making our depth display inconsistent. We played with StereoBM and StereoSGBM algorithms provided by OpenCV, tweaked the parameters, and did some post-filtering, but still could not remove the noise in the disparity map.
+
+- Graph Cut Algorithm: To generate high-quality disparity map, we also tried the graph cut algorithm. [One repo](https://github.com/NathanChenJiabin/GraphCut-Stereo-Disparity) we tested on took about 5 seconds to generate a low resolution diaparity map, which could not achieve real time. We ran [another repo](https://github.com/pmonasse/disparity-with-graph-cuts) on attu, which worked at a decent speed and had a good accuracy. However, there were not a lot of parameters that we could work with.
+
+| First Graph Cut Repo | Second Graph Cut Repo |
+|:-------------------------:|:-------------------------:|
+|<img src="img/graph cut 1.jpg" alt="first graph cut reuslt" width="400"/>|<img src="img/graph cut 2.png" alt="second graph cut result" width="400"/>
+
+#### Future Improvement
+- We got a lot of noise using the OpenCV stereo disparity algorithm on our own images, resulting in a unstable real time disparity or depth map. We can write our own box matching algorithm, or deploying the graph cut algorithm in the future to see if we can fix the problem.
+- We put the webcams on our computer and sometimes they got shaky, making our experiments prone to error and have little flexbility. We can diy a better equipment for our future experimentation.
+
+#### Components from preexisting work (code from github, other libraries)
+
+- We used OpenCV library's video capture, calibration, and disparity map functions.
+- For the graph cut algorithms we used codes from the github repos linked above.
+
+#### Components implemented for the project (new code)
+
+- We implemented the disparity to depth algorithm with C and then export it to Python.
+- We also implemented the user interface with tkinker.
 
 ### Neural Network (utilized [MobileStereoNet](https://github.com/cogsys-tuebingen/mobilestereonet))
 After exploring the open sourced codebases from the top 100 Kitti stereo dataset benchmark, we choose to test on MobileStereoNet. Specifically for this project, we utlized three versions of pretrained versions of 3D-MobileStereoNet that are trained on (SF only), (SF then finetuned on DS), (SF then finetuned on DS and KITTI2015). (available on the github page for [MobileStereoNet](https://github.com/cogsys-tuebingen/mobilestereonet))
@@ -112,17 +143,14 @@ Output disparity maps (note that they do not scale by the same scalar from the r
 - For the kitti image, SF+DS+KITTI2015 performs the best in reavealing the most details like the trees. It's expected since this image is from the kitti testing, and is similar to the training data in kitti.
 - For the scene image, SF model performs the best, we can see the statue, the lamp, the camera, the cans and even some not so clear bookshelf. It's also reasonable because Scene Flow Dataset has FlyingThings3D that are similar 3D rendered scenes.
 
-### Components from preexisting work (code from github, other libraries)
+#### Components from preexisting work (code from github, other libraries)
 
-- For the neural network part, we used code from [MobileStereoNet](https://github.com/cogsys-tuebingen/mobilestereonet))
+- For the neural network part, we used code from [MobileStereoNet](https://github.com/cogsys-tuebingen/mobilestereonet)
 
-### Components implemented for the project (new code)
+#### Components implemented for the project (new code)
 
 - For the neural network part, we wrote a new script to visualize disparity maps ([visualize_disparity.py](neural_network/visualize_disparity.py))
 
-
 ## What we've learned & other thoughts
 - Neural Networks could achieve a lot in the field of Computer Vision, but for the specific task of stereo depth estimation, images that are not driving street photos may not get an accurate output due to the limitation of the dataset not having much indoors training images. If we want to achieve better results for indoor images, we may need to finetune on an indoor focused stereo dataset after pretraining on Scene Flow.
-
-## Citation & Credits
-
+- We learned the most by troubleshooting, trying out different algorithms, experimenting with various parameters, and analyzing a neural network trained on different datasets.
