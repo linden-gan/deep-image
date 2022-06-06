@@ -18,12 +18,30 @@ We explored both the traditional (stereo box match, graph cut) and neural networ
 - numpy (`pip install numpy`)
 - opencv (cv2) (`pip install opencv-python`)
 - matplotlib (`pip install matplotlib`)
-- gcc compiler (already installed in Linux and Mac, please download MinGW for gcc [here](https://www.mingw-w64.org/))
+- gcc compiler (already installed in Linux and Mac, for Windows machines please download MinGW for gcc [here](https://www.mingw-w64.org/))
 - hardwares (two cameras, recommended to use two exactly same webcams so that they can be easily connected to computers and produce same-size images)
 
 #### Pipeline & Algorithm
 - First, we caliberate our webcams to get rid of distorted margin. Next, we input two stereo images to OpenCV's library function to get a disparity map, which represents shifts of each pair of pixels from left and right images. Then, we compute the depth of each pixel based on its shift. Finally, we output the depth information so that user can know each pixel's depth once they click it.
-- 
+- Let's go through the algorithm. Here is a figure showing what we know and what are unknown:     
+<img src="img/algo1.jpg" alt="algo1" width="500"/>
+
+- Typically, we know focal length, two cameras' distance (called displacement), and pixel's shift. We want to compute the vertical distance. To construct similar triangles, we do the following geometry trick:    
+<img src="img/algo2.jpg" alt="algo2" width="500"/>
+
+- By shifting the blue line left, we construct a parallelogram. By the property of parallelogram, we know the bottom displacement is equal to the upper displacement. Now, we can see a pair of similar triangles:     
+<img src="img/algo3.jpg" alt="algo3" width="500"/>
+
+- By the property of similar triangles, we know `focal length / pixel shift = vertical distance / displacement` . Note that the height of the bigger triangle should be vertical distance plus focal length, but given that focal length is too small compared to actual distance, we can safely ignore it. As a result, we can have a nice formula: `vertical distance = focal length * displacement / pixel shift`
+- But wait! Is the vertical distance real distance? Actually, the name "vertical distance" indicates that it's just the distance along z-axis, which is shorter than the actual distance (should be the length of the red line). How can we know the actual distance?    
+<img src="img/algo4.jpg" alt="algo4" width="500"/>
+
+- Again, resort to similar triangles! Now we have two similar triangles. As long as we know the red, short bold lines, we can know the real distance.
+- Let's change our point of view. Supppose now we look at the image normally:     
+<img src="img/algo5.jpg" alt="algo5" width="500"/>
+
+- We know the line connecting focal point and the center of the image is vertical to the image, and the length of this line is just our focal length. We can also know the distance of a pixel to image center. Now, we can use these values to compute distance from focal point to the pixel, which is just the thing we want, by Pythagoras Theorem.
+- That's how we compute the real depth of a pixel!
 
 #### Challenges we ran into
 
