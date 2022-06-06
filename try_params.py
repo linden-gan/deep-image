@@ -23,32 +23,32 @@ rightMapX = calibration["rightMapX"]
 rightMapY = calibration["rightMapY"]
 rightROI = tuple(calibration["rightROI"])
 
-window_size = 13
+window_size = 5
 
-# stereoMatcher = cv2.StereoSGBM_create(
-#     minDisparity=-1,
-#     numDisparities=2*16,
-#     blockSize=window_size,
-#     P1=8 * 3 * window_size,
-#     P2=32 * 3 * window_size,
-#     disp12MaxDiff=12,
-#     uniquenessRatio=10,
-#     speckleWindowSize=50,
-#     speckleRange=32,
-#     preFilterCap=63,
-#     mode=cv2.STEREO_SGBM_MODE_SGBM_3WAY
-# )
-# right_matcher = cv2.ximgproc.createRightMatcher(stereoMatcher);
-
-stereoMatcher = cv2.StereoBM_create()
-stereoMatcher.setMinDisparity(4)
-stereoMatcher.setNumDisparities(96)
-stereoMatcher.setBlockSize(window_size)
-stereoMatcher.setROI1(leftROI)
-stereoMatcher.setROI2(rightROI)
-stereoMatcher.setSpeckleRange(16)
-stereoMatcher.setSpeckleWindowSize(45)
+stereoMatcher = cv2.StereoSGBM_create(
+    minDisparity=-1,
+    numDisparities=3*16,
+    blockSize=window_size,
+    P1=8 * 3 * window_size,
+    P2=32 * 3 * window_size,
+    disp12MaxDiff=12,
+    uniquenessRatio=10,
+    speckleWindowSize=50,
+    speckleRange=32,
+    preFilterCap=63,
+    mode=cv2.STEREO_SGBM_MODE_SGBM_3WAY
+)
 right_matcher = cv2.ximgproc.createRightMatcher(stereoMatcher);
+
+# stereoMatcher = cv2.StereoBM_create()
+# stereoMatcher.setMinDisparity(4)
+# stereoMatcher.setNumDisparities(128)
+# stereoMatcher.setBlockSize(9)
+# stereoMatcher.setROI1(leftROI)
+# stereoMatcher.setROI2(rightROI)
+# stereoMatcher.setSpeckleRange(16)
+# stereoMatcher.setSpeckleWindowSize(45)
+# right_matcher = cv2.ximgproc.createRightMatcher(stereoMatcher)
 
 grayLeft = cv2.cvtColor(imgL, cv2.COLOR_BGR2GRAY)
 grayRight = cv2.cvtColor(imgR, cv2.COLOR_BGR2GRAY)
@@ -63,6 +63,7 @@ filtered_disp = wls_filter.filter(left_disp, imgL, disparity_map_right=right_dis
 out = filtered_disp / 512
 
 cv2.imshow("out", out)
+cv2.imwrite(sys.path[0] + "/disp.png", out * 512 / 16)
 
 while True:
 	key = cv2.waitKey()

@@ -24,34 +24,11 @@ def cropHorizontal(image):
             int((CAMERA_WIDTH-CROP_WIDTH)/2):
             int(CROP_WIDTH+(CAMERA_WIDTH-CROP_WIDTH)/2)]
 
-window_size = 5  # wsize default 3; 5; 7 for SGBM reduced size image; 15 for SGBM full size image (1300px and above); 5 Works nicely
-
-# stereoMatcher = cv2.StereoSGBM_create(
-#     minDisparity=-1,
-#     numDisparities=6*16,
-#     blockSize=window_size,
-#     P1=8 * 3 * window_size,
-#     P2=32 * 3 * window_size,
-#     disp12MaxDiff=12,
-#     uniquenessRatio=10,
-#     speckleWindowSize=50,
-#     speckleRange=32,
-#     preFilterCap=63,
-#     mode=cv2.STEREO_SGBM_MODE_SGBM_3WAY
-# )
-# stereoMatcher = cv2.StereoBM_create()
-# stereoMatcher.setMinDisparity(4)
-# stereoMatcher.setNumDisparities(128)
-# stereoMatcher.setBlockSize(9)
-# stereoMatcher.setROI1(leftROI)
-# stereoMatcher.setROI2(rightROI)
-# stereoMatcher.setSpeckleRange(16)
-# stereoMatcher.setSpeckleWindowSize(45)
-# right_matcher = cv2.ximgproc.createRightMatcher(stereoMatcher)
+window_size = 5
 
 stereoMatcher = cv2.StereoSGBM_create(
     minDisparity=-1,
-    numDisparities=5*16,
+    numDisparities=3*16,
     blockSize=window_size,
     P1=8 * 3 * window_size,
     P2=32 * 3 * window_size,
@@ -62,12 +39,10 @@ stereoMatcher = cv2.StereoSGBM_create(
     preFilterCap=63,
     mode=cv2.STEREO_SGBM_MODE_SGBM_3WAY
 )
-right_matcher = cv2.ximgproc.createRightMatcher(stereoMatcher)
+right_matcher = cv2.ximgproc.createRightMatcher(stereoMatcher);
 
 def compute_disparity(leftFrame, rightFrame):
-    # leftFrame = cropHorizontal(leftFrame)
     leftHeight, leftWidth = leftFrame.shape[:2]
-    # rightFrame = cropHorizontal(rightFrame)
     rightHeight, rightWidth = rightFrame.shape[:2]
 
     print(imageSize)
