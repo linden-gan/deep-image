@@ -2,6 +2,9 @@
 Extract real-time depth information from a pair of stereo images. \
 Our final product is an executable that could calculate and display depth information at a clicked position in real time.
 
+**Click the following release link to view details of our final executable** \
+[Release for deep image](https://github.com/linden-gan/deep-image/releases/)
+
 ## Motivation & Problem Setup
 Depth informaton are useful. We want to be able to tell how far an object is by images, which can give us more than just flat 2D information. This technology can be crucial in auto-drive, 3D environment reconstruction, and distance measurement. Certainly, there exists tools like tape measure or LIDAR that can measure depth information. However, with the help of computer vision stereo matching technique, we can achieve the same thing with equipments that normal people have in their daily life like webcams or cellphone camaras, as long as we have the parameters like distance between two cameras, field of view or focal length of the camera, and proper calibration. With our setup, we can even output depth values in real time!
 
