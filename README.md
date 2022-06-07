@@ -64,7 +64,7 @@ We explored both the traditional methods, including stereo box match and graph c
 |<img src="img/mleft.png" alt="left_uncalib" width="500"/> Original Left |  <img src="img/mright.png" alt="right_uncalib" width="500"/> Original Right 
 |<img src="img/cmleft.png" alt="left_calib" width="500"/> Calibrated Left |<img src="img/cmleft.png" alt="left_calib" width="500"/> Calibrated Right |
 
-- Disparity Map: Having texture in the images is important for genereating a good disparity map. When we tried to calculate the depth with a lot of repetitive patterns in the background, we got extremely unstable disparity maps and thus making our depth display inconsistent. We played with StereoBM and StereoSGBM algorithms provided by OpenCV, tweaked the parameters like blockSize and numDisparities, and did some post-filtering, but still could not remove the noise in the disparity map.
+- Disparity Map: Having texture in the images is important for genereating a good disparity map. When we tried to calculate the depth with a lot of repetitive patterns in the background, we got extremely unstable disparity maps and thus making our depth display inconsistent. We played with StereoBM and StereoSGBM algorithms provided by OpenCV, tweaked the parameters like blockSize and numDisparities, and did some post-filtering, but still could not remove the noise in the disparity map. Also, the disparity map we generated has a black stripe in the left, depending on the numDisparities we set. For the black region, there is no sensical disparity value so depth cannot be computed there.
 
 | Original Image | OpenCV Disparity Map | Second Graph Cut Disparity Map |
 |:-------------------------:|:-------------------------:|:-------------------------:|
