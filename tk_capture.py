@@ -1,9 +1,7 @@
-from ast import Return
 import tkinter as tk
 import cv2
 from PIL import Image, ImageTk
 import numpy as np
-import sys
 from tk_disparity import compute_disparity
 from traditional.cutil import compute_depth
 
