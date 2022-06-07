@@ -54,6 +54,7 @@ We explored both the traditional methods, including stereo box match and graph c
 - Run python tk_capture.py to start the application.
 - Input the baseline and field of view values according to your cameras.
 - Click on the point of interest in the left image and read the depth value in the bottom right corner.
+<img src="img/demo.png" alt="interface demo" width="950"/>
 
 #### Challenges we ran into
 - Calibration: The calibration step was tricky. At the beginning, we used the same set of images for calibrating individual cameras and calibrating both cameras. It did not work well. The images got zoomed in wierdly after rectification and they were not aligned perfectly horizontally. To deal with the problem, we decided to shoot different sets of images for calibrating individual cameras, and we used the png format instead jpg when saving images. We later found out the checkerboard was crucial as well. We did not succeed in one go because we did not make sure we had different angles and positions when we held the checkerboard. After shooting about 25 images for each calibration, we got a pretty good result.
