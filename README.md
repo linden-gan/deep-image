@@ -25,21 +25,25 @@ We explored both the traditional methods, including stereo box match and graph c
 - hardwares (two cameras, recommended to use two exactly same webcams so that they can be easily connected to computers and produce same-size images with similar camera intrinsics and extrinsics)
 
 #### Pipeline & Algorithm
-- First, we caliberate our webcams individually with a 7*5 checkerboard to get their camera matrices and distortion coefficients. Then, we calibrate and rectify cameras together to deal with possible rotation and translation, and eventually make the images align perfectly on the horizontal axis. Next, we input the calibrated and rectified stereo images to OpenCV's library function to generate a disparity map, which contains the pixel difference of each pixel in the left image. We compute the depth of each pixel based on its shift, combining with the baseline and field of view of the cameras. Finally, we output the depth information by allowing users to click on the left image and print out the depth value of the corresponding position.
+- First, we caliberate our webcams individually with a 7*5 checkerboard to get their camera matrices and distortion coefficients.
+- Then, we calibrate and rectify cameras together to deal with possible rotation and translation, and eventually make the images align perfectly on the horizontal axis.
+- Next, we input the calibrated and rectified stereo images to OpenCV's library function to generate a disparity map, which contains the pixel difference of each pixel in the left image.
+- After that, we compute the depth of each pixel based on its shift, combining with the baseline and field of view of the cameras.
+- Finally, we output the depth information by allowing users to click on the left image and print out the depth value of the corresponding position.
 - Let's go through the disparity to depth algorithm. Here is a figure showing what we know and what are unknown:     
 <img src="img/algo1.jpg" alt="algo1" width="500"/>
 
-- Typically, we know focal length, two cameras' distance (called displacement or baseline), and pixel's shift. We want to compute the vertical distance. To construct similar triangles, we do the following geometry trick:\
+- Typically, we know focal length, two cameras' distance (called displacement or baseline), and pixel's shift. We want to compute the vertical distance. To construct similar triangles, we do the following geometry trick:
 <img src="img/algo2.jpg" alt="algo2" width="500"/>
 
-- By shifting the blue line left, we construct a parallelogram. By the property of parallelogram, we know the bottom displacement is equal to the upper displacement. Now, we can see a pair of similar triangles:\
+- By shifting the blue line left, we construct a parallelogram. By the property of parallelogram, we know the bottom displacement is equal to the upper displacement. Now, we can see a pair of similar triangles:
 <img src="img/algo3.jpg" alt="algo3" width="500"/>
 
 - By the property of similar triangles, we know `focal length / pixel shift = vertical distance / displacement` . Note that the height of the bigger triangle should be vertical distance plus focal length, but given that focal length is too small compared to actual distance, we can safely ignore it. As a result, we can have a nice formula: `vertical distance = focal length * displacement / pixel shift`
 - But wait! Is the vertical distance real distance? Actually, the name "vertical distance" indicates that it's just the distance along z-axis, which is shorter than the actual distance (should be the length of the red line). How can we know the actual distance?    
 <img src="img/algo4.jpg" alt="algo4" width="500"/>
 
-- Again, resort to similar triangles! Now we have two similar triangles. As long as we know the red, short bold lines, we can know the real distance.
+- Again, resort to similar triangles! Now we have two similar triangles. As long as we know the red short bold lines (let's call it pixel distance), we can know the real distance by the formula `real distance / vertical distance = pixel distance / focal length`.
 - Let's change our point of view. Supppose now we look at the image normally:     
 <img src="img/algo5.jpg" alt="algo5" width="500"/>
 
